@@ -5,22 +5,30 @@ namespace DiskMonitor
 {
     internal class JsonUtil
     {
-        private const string saveFile = "config.json";
+        private string saveFile = "config.json";
         private JObject jobj;
-        private static JsonUtil jsonUtil = new JsonUtil();
-        private JsonUtil()
-        {            
+        private static JsonUtil jsonUtil;
+        private JsonUtil(string dir)
+        {
             jobj = new JObject();
+            saveFile = Path.Combine(dir, saveFile);
             if (File.Exists(saveFile))
             {
                 jobj.Merge(Read());
             }
         }
-
+        internal static JsonUtil GetSingleton(string dir)
+        {
+            if (jsonUtil is null)
+            {
+                jsonUtil = new JsonUtil(dir);
+            }
+            return jsonUtil;
+        }
         internal static JsonUtil GetSingleton()
         {
             return jsonUtil;
-        }               
+        }
 
         internal JObject Read()
         {

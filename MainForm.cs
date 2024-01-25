@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Drawing;
 using System.IO;
@@ -11,7 +12,7 @@ namespace DiskMonitor
     public partial class MainForm : Form
     {
         private DriveInfo[] allDirves = DriveInfo.GetDrives();
-        private JsonUtil jsonUtil = JsonUtil.GetSingleton();
+        private JsonUtil jsonUtil = JsonUtil.GetSingleton(Path.GetDirectoryName(Application.ExecutablePath));
         private volatile int interval = 10;
         private const string intervalName = "interval";
         public MainForm()
@@ -21,16 +22,15 @@ namespace DiskMonitor
                 jsonUtil.SetAndSave(new JObject { { intervalName, interval } });
             }
             InitializeComponent();
+            Hide();
+            WindowState = FormWindowState.Minimized;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            //RegistryKey registryKey = Registry.CurrentUser.OpenSubKey
-            //    ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            //if (registryKey.GetValue("DiskMonitor") is null)
-            //{
-            //    registryKey.SetValue("DiskMonitor", Application.ExecutablePath);
-            //}
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey
+                (@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+            registryKey.SetValue("DiskMonitor", Application.ExecutablePath);
 
             interval = (int)jsonUtil.Get(intervalName);
             textBox_interval.Text = interval.ToString();
@@ -42,7 +42,7 @@ namespace DiskMonitor
             {
                 while (true)
                 {
-                    Thread.Sleep(100 * 60 * interval);
+                    Thread.Sleep(1000 * 60 * interval);
                     panel1.Invoke(action);
                 }
             });
